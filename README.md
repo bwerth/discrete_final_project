@@ -1,2 +1,2 @@
 # Discrete Mathematics Final Project
-# Path Planning for 2D Drawing
+## Path Planning for 2D Drawing
