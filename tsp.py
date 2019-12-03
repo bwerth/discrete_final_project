@@ -1,5 +1,9 @@
 import abc
 from typing import Tuple, List, Set
+import math
+import itertools
+
+# import matplotlib.pyplot as plt
 
 
 # type definitions
@@ -8,46 +12,69 @@ Path = List[Point]
 
 Drawing = List[Path]
 
-Graph: Set[Node]
-
 
 class Solvable(abc.ABC):
-    def distance_to(self, other):
+    def distance_to(self, other: Solvable) -> float:
         pass
 
 
+def dist(one: Solvable, other: Solvable) -> float:
+    return one.distance_to(other)
+
+
 class Node(Solvable):
-    def __init__(self, *points):
-        self.points = list(*points)
+    def __init__(self, point: Point):
+        self.point = point
         self.edges = set()
 
-    def distance_to(self, other: Path):
+    def distance_to(self, other: Path) -> float:
         # TODO: look into <https://docs.python.org/3/library/functools.html#functools.lru_cache>
         # for this
-        return tuple(abs(v1 - v2) for v1, v2 in zip(self.end, other.start))
-
-    def distance_from(self, other: Path):
-        return tuple(abs(v1 - v2) for v1, v2 in zip(other.end, self.start))
+        return math.sqrt((self.point[0] - other.point[0])**2 + (self.point[1] - other.point[1])**2)
 
     def connect(self, other: Path):
         self.edges.add(self)
         other.edges.add(self)
 
-    def is_connected(self, other: Path):
+    def is_connected(self, other: Path) -> bool:
         assert (other in self.edges) == (self in other.edges)
         return self in other.edges
 
-    @property
-    def start(self):
-        return self.points[0]
-
-    @property
-    def end(self):
-        return self.points[-1]
-
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.points)
 
 
-def dist(one: Solvable, other: Solvable) -> float:
-    return one.distance_to(other)
+class Graph(object):
+    def __init__(self):
+        self.nodes = set()
+
+    @classmethod
+    def from_drawing(cls, d: Drawing):
+        g = cls()
+        for path in d:
+            subg = cls.from_path(path)
+            g.nodes.update(subg.nodes)
+        return g
+
+    @classmethod
+    def from_path(cls, p: Path):
+        g = cls()
+        p = iter(p)
+        node_a = Node(next(p))
+        g.nodes.add(node_a)
+        for point in p:
+            node_b = Node(point)
+            node_b.connect(node_a)
+            g.nodes.add(node_b)
+            node_a = node_b
+        return g
+
+
+if __name__ == '__main__':
+    d = [
+        [(0, 0), (1, 1)],  # simple two-point line
+        [(0, 0), (0, 1), (1, 2), (2, 3), (0, 0)],  # a cycle
+        [(1, 2), (4, 5), (2, 3)],  # a bent three-point line
+    ]
+    g = Graph.from_drawing(d)
+    next
