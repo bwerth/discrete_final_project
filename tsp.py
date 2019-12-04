@@ -33,7 +33,7 @@ class Node(Solvable):
         return math.sqrt((self.point[0] - other.point[0])**2 + (self.point[1] - other.point[1])**2)
 
     def connect(self, other: Path):
-        self.edges.add(self)
+        self.edges.add(other)
         other.edges.add(self)
 
     def is_connected(self, other: Path) -> bool:
@@ -74,7 +74,7 @@ class Graph(object):
 
     def get_edges(self) -> Iterable[Tuple[Node, Node]]:
         pairs = set(itertools.chain(
-            *((frozenset((n, e)) for e in n.edges) for n in self.nodes)))
+            *((frozenset({n, e}) for e in n.edges) for n in self.nodes)))
         return iter(pairs)
 
 
