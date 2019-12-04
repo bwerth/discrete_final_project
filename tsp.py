@@ -14,7 +14,7 @@ Drawing = List[Path]
 
 
 class Solvable(abc.ABC):
-    def distance_to(self, other: Solvable) -> float:
+    def distance_to(self, other: 'Solvable') -> float:
         pass
 
 
@@ -49,7 +49,7 @@ class Graph(object):
         self.nodes = set()
 
     @classmethod
-    def from_drawing(cls, d: Drawing):
+    def from_drawing(cls, d: Drawing) -> 'Graph':
         g = cls()
         for path in d:
             subg = cls.from_path(path)
@@ -57,7 +57,7 @@ class Graph(object):
         return g
 
     @classmethod
-    def from_path(cls, p: Path):
+    def from_path(cls, p: Path) -> 'Graph':
         g = cls()
         p = iter(p)
         node_a = Node(next(p))
@@ -77,4 +77,3 @@ if __name__ == '__main__':
         [(1, 2), (4, 5), (2, 3)],  # a bent three-point line
     ]
     g = Graph.from_drawing(d)
-    next
