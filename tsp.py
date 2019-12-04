@@ -1,5 +1,5 @@
 import abc
-from typing import Tuple, List, Set
+from typing import Tuple, List, Set, Iterable
 import math
 import itertools
 
@@ -41,7 +41,10 @@ class Node(Solvable):
         return self in other.edges
 
     def __str__(self) -> str:
-        return str(self.points)
+        return str(self.point)
+
+    def __repr__(self) -> str:
+        return str(self)
 
 
 class Graph(object):
@@ -68,6 +71,11 @@ class Graph(object):
             g.nodes.add(node_b)
             node_a = node_b
         return g
+
+    def get_edges(self) -> Iterable[Tuple[Node, Node]]:
+        pairs = set(itertools.chain(
+            *((frozenset((n, e)) for e in n.edges) for n in self.nodes)))
+        return iter(pairs)
 
 
 if __name__ == '__main__':
