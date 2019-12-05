@@ -1,5 +1,5 @@
 import abc
-from typing import Tuple, List, Set, Iterable
+from typing import Tuple, List, Set, Iterable, FrozenSet
 import math
 import itertools
 
@@ -27,21 +27,21 @@ class Node(Solvable):
         self.point = point
         self.edges = set()
 
-    def distance_to(self, other: Path) -> float:
+    def distance_to(self, other: 'Node') -> float:
         # TODO: look into <https://docs.python.org/3/library/functools.html#functools.lru_cache>
         # for this
         return math.sqrt((self.point[0] - other.point[0])**2 + (self.point[1] - other.point[1])**2)
 
-    def connect(self, other: Path):
+    def connect(self, other: 'Node'):
         self.edges.add(other)
         other.edges.add(self)
 
-    def is_connected(self, other: Path) -> bool:
+    def is_connected(self, other: 'Node') -> bool:
         assert (other in self.edges) == (self in other.edges)
         return self in other.edges
 
     def __str__(self) -> str:
-        return str(self.point)
+        return 'Node({!r})<id={!r}>'.format(self.point, str(id(self))[-4:])
 
     def __repr__(self) -> str:
         return str(self)
@@ -72,9 +72,11 @@ class Graph(object):
             node_a = node_b
         return g
 
-    def get_edges(self) -> Iterable[Tuple[Node, Node]]:
-        pairs = set(itertools.chain(
-            *((frozenset({n, e}) for e in n.edges) for n in self.nodes)))
+    def get_edges(self) -> Iterable[FrozenSet[Node]]:
+        pairs = set()
+        for n in self.nodes:
+            for e in n.edges:
+                pairs.add(frozenset({n, e}))
         return iter(pairs)
 
 
