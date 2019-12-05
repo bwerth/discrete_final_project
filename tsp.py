@@ -3,7 +3,9 @@ from typing import Tuple, List, Set, Iterable, FrozenSet
 import math
 import itertools
 
-# import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+import networkx as nx
 
 
 # type definitions
@@ -78,6 +80,12 @@ class Graph(object):
             for e in n.edges:
                 pairs.add(frozenset({n, e}))
         return iter(pairs)
+
+    def to_nx(self):
+        g = nx.Graph()
+        g.add_nodes_from(iter(self.nodes))
+        g.add_edges_from(self.get_edges())
+        return g
 
 
 if __name__ == '__main__':
