@@ -115,6 +115,11 @@ class SvgGraph(Graph):
                 (p.point(t) for t in np.linspace(0, 1, resolution))))
             for p in paths)
 
+    def draw(self, **draw_kwargs):
+        g = self.to_nx()
+        # flip y-coordinates to reconcile svg and matplotlib axes
+        nx.draw(g, pos={n: (n.point[0], -n.point[1]) for n in iter(self.nodes)}, **draw_kwargs)
+
 
 if __name__ == '__main__':
     d = [
