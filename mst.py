@@ -33,7 +33,7 @@ def find_mst(graph: 'Graph'):
         if x != y:
             e = e+1
             result.append((u,v,w))
-    return False
+    return result
 
 def findset(parent, i):
     if parent[i] == i:

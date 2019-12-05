@@ -1,0 +1,4 @@
+matplotlib
+networkx
+svg-path
+svgpathtools
