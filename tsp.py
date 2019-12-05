@@ -123,3 +123,4 @@ if __name__ == '__main__':
         [(1, 2), (4, 5), (2, 3)],  # a bent three-point line
     ]
     g = Graph.from_drawing(d)
+    g2 = SvgGraph.from_svg('test.svg')
