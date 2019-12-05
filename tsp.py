@@ -6,6 +6,8 @@ import itertools
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
+from svgpathtools import svg2paths, wsvg
 
 
 # type definitions
@@ -55,8 +57,12 @@ class Graph(object):
 
     @classmethod
     def from_drawing(cls, d: Drawing) -> 'Graph':
+        return cls.from_paths(d)
+
+    @classmethod
+    def from_paths(cls, ps: Iterable[Path]) -> 'Graph':
         g = cls()
-        for path in d:
+        for path in ps:
             subg = cls.from_path(path)
             g.nodes.update(subg.nodes)
         return g
@@ -86,6 +92,28 @@ class Graph(object):
         g.add_nodes_from(iter(self.nodes))
         g.add_edges_from(self.get_edges())
         return g
+
+    def draw(self, **draw_kwargs):
+        g = self.to_nx()
+        nx.draw(g, pos={n: n.point for n in iter(self.nodes)}, **draw_kwargs)
+
+
+class SvgGraph(Graph):
+    # TODO: fix orientation of SVG axes relative to graph/matplotlib axes
+    # TODO: reorganize these classes to make it a little more object-oriented
+
+    @classmethod
+    def from_svg(cls, svgfile: str, resolution: int = 100):
+        paths, attributes = svg2paths(svgfile)
+        #  now use methods provided by the path_data object
+        #  e.g. points can be extracted using
+        #  point = path_data.pos(pos_val)
+        #  where pos_val is anything between 0 and 1
+        return cls.from_paths(
+            list(map(
+                lambda a: (a.real, a.imag),
+                (p.point(t) for t in np.linspace(0, 1, resolution))))
+            for p in paths)
 
 
 if __name__ == '__main__':
