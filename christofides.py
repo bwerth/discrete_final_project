@@ -6,10 +6,34 @@
 5. Find Euler circuit in multigraph
 6. Turn Euler circuit into Hamilton circuit
 '''
+from mst2 import *
+from tsp import *
+from blossom import *
 
 # import Bryan's min weight perfect match stuff here
 
-def get_odd_verts(mst):
+def christofides(graph: 'Graph'):
+    edges = [(n1.point,n2.point,dist(n1,n2)) for n1,n2 in graph.get_edges()]
+        # 'edges' is technically a graph, don't worry
+    MST_tree = find_mst2(graph)
+    odd_verts = find_odd_verts(MST_tree)
+    MST_tree = minimum_weight_match(MST_tree,edges)
+    euc = euler_circ(MST_tree, graph)
+    curr = euc[0]
+    path = [curr]
+    visited = [False]*len(euc)
+    visited[0] = True
+    length = 0
+    for i in euc[1:]:
+        if not visited[i]:
+            path.append(i)
+            visited[i] = True
+            length += G[curr][i]
+            curr = i
+    path.append(path[0])
+    return length, path
+
+def find_odd_verts(mst):
     temp = {}
     verts = []
     for edge in mst:
@@ -36,7 +60,7 @@ def euler_circ(matched_mst, uhh):
     # SIKE BITCH we're also finding the Hamilton circuit
     start_vert = matched_mst[0][0]
     euc = [nabes[start_vert][0]]
-    while len(matched_mst) > 0
+    while len(matched_mst) > 0:
         for i, v in enumerate(euc):
             if len(nabes[v]) > 0:
                 break
@@ -56,7 +80,16 @@ def edge_remove(matched_mst, v1, v2):
     return matched_mst
 
 
-
+if __name__ == '__main__':
+    d = [
+        [(0, 0), (1, 1)],  # simple two-point line
+        [(0, 0), (0, 1), (1, 2), (2, 3), (0, 0)],  # a cycle
+        [(1, 2), (4, 5), (2, 3)],  # a bent three-point line
+    ]
+    g = Graph.from_drawing(d)
+    length, path = christofides(g)
+    print(path)
+    print(length)
 
 
 

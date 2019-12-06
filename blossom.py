@@ -33,11 +33,6 @@ def minimum_weight_match(mst,graph):
 				if(edge[0],edge[1] is u,v or edge[0],edge[1] is v,u):
 					is_in_mst = 1
 		if(not is_in_mst):
-			mst.add(dist_verts(u,v))
+			mst.append(dist_verts(u,v))
 		odd_vertices.remove(u)
 	return mst
-
-
-
-
-

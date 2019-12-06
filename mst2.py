@@ -1,12 +1,12 @@
 from tsp import *
 
 def find_mst2(graph: 'Graph'):
-    edges = [(n1,n2,dist(n1,n2)) for n1,n2 in graph.get_edges()]
+    edges = [(n1.point,n2.point,dist(n1,n2)) for n1,n2 in graph.get_edges()]
     edges = sorted(edges,key=lambda item: item[2])
     tree = []
     subtrees = UnionFind()
     for u,v,w in edges:
-        tree.append[(u,v,w)]
+        tree.append((u,v,w))
         subtrees.union(u,v)
     return tree
 
