@@ -115,9 +115,12 @@ class Graph(object):
     def draw(self, **draw_kwargs):
         """Draw the graph using matplotlib/networkx."""
         g = self.to_nx()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
         if 'pos' not in draw_kwargs:
             draw_kwargs['pos'] = {n: n.point for n in iter(self.nodes)}
-        nx.draw(g, **draw_kwargs)
+        nx.draw(g, ax=ax, **draw_kwargs)
+        ax.set_aspect('equal')
 
     def validate_path(self, start: Node):
         """Assert that the path beginning with `start` reaches all nodes in the graph."""
