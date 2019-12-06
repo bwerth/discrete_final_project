@@ -17,6 +17,18 @@ Path = List[Point]
 Drawing = List[Path]
 
 
+def pairwise(iterable):
+    """Return overlapping pairs of an iterable.
+
+    s -> (s0,s1), (s1,s2), (s2, s3), ...
+
+    From <https://docs.python.org/3/library/itertools.html#itertools-recipes>.
+    """
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
+
 class Solvable(abc.ABC):
     def distance_to(self, other: 'Solvable') -> float:
         pass
@@ -49,6 +61,34 @@ class Node(Solvable):
 
     def __repr__(self) -> str:
         return str(self)
+
+    def walk(self, start: 'Node' = None):
+        """Generator that walks along nodes connected in a path."""
+        if start is None:
+            if len(self.edges) > 1:
+                raise ValueError('Node {!r} has more than one edge'.format(self))
+            if len(self.edges) == 0:
+                return
+            start = next(iter(self.edges))
+        yield self
+        if len(start.edges) > 2:
+            raise ValueError('Next node {!r} has more than two edges'.format(start))
+        try:
+            next_node = next(iter(start.edges.difference({self})))
+        except StopIteration:
+            # next node has no other edges
+            yield start
+        else:
+            yield from start.walk(next_node)
+        return
+
+    def path_length(self, start: 'Node' = None) -> float:
+        """Get the length of a path from the node, optionally specified with a direction."""
+        # here the path is walked and successive pairs of connected nodes are
+        # fed into the `dist` function
+        # For a path of nodes n1->n2->n3->n4 (where start=n1), this is
+        # equivalent to sum([dist(n1, n2), dist(n2, n3), dist(n3, n4)])
+        return sum(itertools.starmap(dist, pairwise(self.walk(start=start))))
 
 
 class Graph(object):
@@ -96,6 +136,11 @@ class Graph(object):
     def draw(self, **draw_kwargs):
         g = self.to_nx()
         nx.draw(g, pos={n: n.point for n in iter(self.nodes)}, **draw_kwargs)
+
+    def validate_path(self, start: Node):
+        """Assert that the path beginning with `start` reaches all nodes in the graph."""
+        nodes_in_path = set(start.walk())
+        assert nodes_in_path == self.nodes, "Path does not contain all nodes"
 
 
 class SvgGraph(Graph):
