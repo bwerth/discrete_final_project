@@ -1,5 +1,5 @@
 from tsp import *
-from mst import *
+from christofides import *
 import random
 # Based vaguely on:
 # https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2/
@@ -12,18 +12,10 @@ import random
 #       - set of points adjacent to node
 #   - distance_to():
 #       - returns distance to a node (weight?)
-def find_odd_vertices(graph):
-	odd_vertices = {}
-	for node in graph.nodes:
-		connections = len(node.edges)
-		if(connections%2 is 1):
-			odd_vertices.add(node)
-	return odd_vertices
 
-def minimum_weight_match(graph):
-	odd_vertices = find_odd_vertices(graph)
+def minimum_weight_match(mst):
+	odd_vertices = find_odd_verts(mst)
 	random.shuffle(odd_vertices)
-
 	while odd_vertices:
 		v = odd_vertices.pop()
 		length = float("inf")
@@ -32,10 +24,15 @@ def minimum_weight_match(graph):
 			if v != u and v.distance_to(u) < length:
 				length = v.distance_to(u)
 				closest = u
-		if(not mst.nodes[u].is_connected(graph.nodes[v])):
-			graph.nodes[u].connect(graph.nodes[v])
+		is_in_mst = 0
+		for edge in mst:
+			if(edge[2] is v.distance_to(u)):
+				if(edge[0],edge[1] is u,v or edge[0],edge[1] is v,u):
+					is_in_mst = 1
+		if(not is_in_mst):
+			mst.add((u,v,v.distance_to(u)))
 		odd_vertices.remove(u)
-	return graph
+	return mst
 
 
 
