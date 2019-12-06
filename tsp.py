@@ -115,7 +115,9 @@ class Graph(object):
     def draw(self, **draw_kwargs):
         """Draw the graph using matplotlib/networkx."""
         g = self.to_nx()
-        nx.draw(g, pos={n: n.point for n in iter(self.nodes)}, **draw_kwargs)
+        if 'pos' not in draw_kwargs:
+            draw_kwargs['pos'] = {n: n.point for n in iter(self.nodes)}
+        nx.draw(g, **draw_kwargs)
 
     def validate_path(self, start: Node):
         """Assert that the path beginning with `start` reaches all nodes in the graph."""
@@ -164,9 +166,8 @@ class SvgGraph(Graph):
             (path.point(t) for t in np.linspace(0, 1, resolution)))
 
     def draw(self, **draw_kwargs):
-        g = self.to_nx()
         # flip y-coordinates to reconcile svg and matplotlib axes
-        nx.draw(g, pos={n: (n.point[0], -n.point[1]) for n in iter(self.nodes)}, **draw_kwargs)
+        super().draw(g, pos={n: (n.point[0], -n.point[1]) for n in iter(self.nodes)}, **draw_kwargs)
 
 
 class NaiveSvgGraph(SvgGraph):
