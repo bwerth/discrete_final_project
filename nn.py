@@ -2,6 +2,7 @@ from tsp import (
     Node,
     Graph,
     SvgGraph,
+    NaiveSvgGraph,
     dist,
 )
 
@@ -50,6 +51,7 @@ if __name__ == '__main__':
         [(0, 0), (0, 1), (1, 2), (2, 3), (0, 0)],  # a cycle
         [(1, 2), (4, 5), (2, 3)],  # a bent three-point line
     ]
-    g = Graph.from_drawing(d)
+    g = Graph()
+    g.add_from_paths(d)
 
     start = nearest_neighbor_sort(g)

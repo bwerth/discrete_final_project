@@ -12,9 +12,9 @@ from svgpathtools import svg2paths, wsvg
 
 # type definitions
 Point = Tuple[float, float]
-Path = List[Point]
+Path = Iterable[Point]
 
-Drawing = List[Path]
+Drawing = Iterable[Path]
 
 
 def pairwise(iterable):
@@ -92,35 +92,13 @@ class Node(Solvable):
 
 
 class Graph(object):
+    """A collection of interlinked Nodes."""
+
     def __init__(self):
         self.nodes = set()
 
-    @classmethod
-    def from_drawing(cls, d: Drawing) -> 'Graph':
-        return cls.from_paths(d)
-
-    @classmethod
-    def from_paths(cls, ps: Iterable[Path]) -> 'Graph':
-        g = cls()
-        for path in ps:
-            subg = cls.from_path(path)
-            g.nodes.update(subg.nodes)
-        return g
-
-    @classmethod
-    def from_path(cls, p: Path) -> 'Graph':
-        g = cls()
-        p = iter(p)
-        node_a = Node(next(p))
-        g.nodes.add(node_a)
-        for point in p:
-            node_b = Node(point)
-            node_b.connect(node_a)
-            g.nodes.add(node_b)
-            node_a = node_b
-        return g
-
     def get_edges(self) -> Iterable[FrozenSet[Node]]:
+        """Get an iterable of all edges in the graph."""
         pairs = set()
         for n in self.nodes:
             for e in n.edges:
@@ -128,12 +106,14 @@ class Graph(object):
         return iter(pairs)
 
     def to_nx(self):
+        """Make a NetworkX-compatible graph."""
         g = nx.Graph()
         g.add_nodes_from(iter(self.nodes))
         g.add_edges_from(self.get_edges())
         return g
 
     def draw(self, **draw_kwargs):
+        """Draw the graph using matplotlib/networkx."""
         g = self.to_nx()
         nx.draw(g, pos={n: n.point for n in iter(self.nodes)}, **draw_kwargs)
 
@@ -142,28 +122,69 @@ class Graph(object):
         nodes_in_path = set(start.walk())
         assert nodes_in_path == self.nodes, "Path does not contain all nodes"
 
+    def add_from_path(self, p: Path):
+        """Add a path of connected nodes from a series of points."""
+        # iterate through points from path, adding nodes while connecting the
+        # previous node to the current
+        p = iter(p)
+        node_a = Node(next(p))
+        start = node_a
+        self.nodes.add(node_a)
+        for point in p:
+            node_b = Node(point)
+            node_b.connect(node_a)
+            self.nodes.add(node_b)
+            node_a = node_b
+        end = node_b
+        return (start, end)
+
+    def add_from_paths(self, ps: Iterable[Path]):
+        """Add multiple distinct paths to the graph."""
+        for path in ps:
+            self.add_from_path(path)
+
 
 class SvgGraph(Graph):
-    # TODO: fix orientation of SVG axes relative to graph/matplotlib axes
-    # TODO: reorganize these classes to make it a little more object-oriented
+    """Graph of distinct paths loaded from an svg."""
 
-    @classmethod
-    def from_svg(cls, svgfile: str, resolution: int = 100):
+    def __init__(self, svgfile: str, resolution: int = 100):
+        super().__init__()
         paths, attributes = svg2paths(svgfile)
         #  now use methods provided by the path_data object
         #  e.g. points can be extracted using
         #  point = path_data.pos(pos_val)
         #  where pos_val is anything between 0 and 1
-        return cls.from_paths(
-            list(map(
-                lambda a: (a.real, a.imag),
-                (p.point(t) for t in np.linspace(0, 1, resolution))))
-            for p in paths)
+        self.add_from_paths(self._svgpath_to_points(p) for p in paths)
+
+    @staticmethod
+    def _svgpath_to_points(path, resolution: int = 100):
+        """Convert svg.path's path objects to a point-tuple iterator."""
+        return map(
+            lambda a: (a.real, a.imag),
+            (path.point(t) for t in np.linspace(0, 1, resolution)))
 
     def draw(self, **draw_kwargs):
         g = self.to_nx()
         # flip y-coordinates to reconcile svg and matplotlib axes
         nx.draw(g, pos={n: (n.point[0], -n.point[1]) for n in iter(self.nodes)}, **draw_kwargs)
+
+
+class NaiveSvgGraph(SvgGraph):
+    """A graph of a single path built from an svg, connecting subsequent paths.
+
+    This represents the path created by parsing an svg in-place with no sorting.
+
+    The start node of this path is stored as `self.start` after initialization.
+    """
+
+    def __init__(self, svgfile: str, resolution: int = 100):
+        Graph.__init__(self)
+        paths, attributes = svg2paths(svgfile)
+        # rather than add a new path for each svgpath, chain the svgpath points
+        # together for a single path
+        point_iterator = itertools.chain.from_iterable(
+            self._svgpath_to_points(p) for p in paths)
+        (self.start, _) = self.add_from_path(point_iterator)
 
 
 if __name__ == '__main__':
@@ -172,5 +193,6 @@ if __name__ == '__main__':
         [(0, 0), (0, 1), (1, 2), (2, 3), (0, 0)],  # a cycle
         [(1, 2), (4, 5), (2, 3)],  # a bent three-point line
     ]
-    g = Graph.from_drawing(d)
-    g2 = SvgGraph.from_svg('test.svg')
+    g = Graph()
+    g.add_from_paths(d)
+    g2 = SvgGraph('test.svg')
