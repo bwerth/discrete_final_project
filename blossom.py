@@ -16,7 +16,7 @@ import random
 def dist_verts(u,v):
 	return math.sqrt((u[0] - v[0])**2 + (u[1] - v[1])**2)
 
-def minimum_weight_match(mst,graph):
+def minimum_weight_match(mst):
 	odd_vertices = find_odd_verts(mst)
 	random.shuffle(odd_vertices)
 	while odd_vertices:
@@ -33,6 +33,6 @@ def minimum_weight_match(mst,graph):
 				if(edge[0],edge[1] is u,v or edge[0],edge[1] is v,u):
 					is_in_mst = 1
 		if(not is_in_mst):
-			mst.append(dist_verts(u,v))
+			mst.append((u,v,dist_verts(u,v)))
 		odd_vertices.remove(u)
 	return mst

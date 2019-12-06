@@ -17,7 +17,8 @@ def christofides(graph: 'Graph'):
         # 'edges' is technically a graph, don't worry
     MST_tree = find_mst2(graph)
     odd_verts = find_odd_verts(MST_tree)
-    MST_tree = minimum_weight_match(MST_tree,edges)
+    print(MST_tree)
+    MST_tree = minimum_weight_match(MST_tree)
     euc = euler_circ(MST_tree, graph)
     curr = euc[0]
     path = [curr]
