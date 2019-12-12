@@ -1,3 +1,4 @@
+"""Structures for building graphs and integrating svgs."""
 import abc
 from typing import Tuple, List, Set, Iterable, FrozenSet
 import math

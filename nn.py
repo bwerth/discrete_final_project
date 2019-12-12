@@ -1,3 +1,4 @@
+"""An implementation of Nearest-Neighbor path sorting."""
 from tsp import (
     Node,
     Graph,
